@@ -4,13 +4,13 @@ import { getFirestore, doc, setDoc, collection } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCdC1YPbF-1gKZhycQiEzlzpfYupOkrTvA",
-  authDomain: "unigroups-chats.firebaseapp.com",
-  projectId: "unigroups-chats",
-  storageBucket: "unigroups-chats.appspot.com", // Make sure this is correct
-  messagingSenderId: "217202360464",
-  appId: "1:217202360464:web:f4b3a686d7875646085815",
-  measurementId: "G-VX7HZH89E1"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "PLACEHOLDER_API_KEY",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
