@@ -1,0 +1,80 @@
+/* Header Styles */
+.app-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.header-title:hover {
+  opacity: 0.8;
+}
+
+.header-title h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* User menu in header */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid white;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+/* Header buttons */
+.profile-button, .logout-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
+.profile-button:hover, .logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-button {
+  background-color: var(--accent-color, rgba(255, 255, 255, 0.2));
+  color: white;
+}
+
+.logout-button {
+  background-color: #f8f9fa;
+  color: #333;
+}

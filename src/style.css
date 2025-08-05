@@ -1,0 +1,8 @@
+/* This file imports all your component styles */
+@import './styles/variables.css';
+@import './styles/layout.css';
+@import './styles/auth.css';
+@import './styles/header.css';
+@import './styles/groups.css';
+@import './styles/chat.css';
+@import './styles/profile.css';

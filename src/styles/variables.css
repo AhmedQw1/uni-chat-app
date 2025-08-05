@@ -1,0 +1,13 @@
+:root {
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --background-color: #f3f4f6;
+  --surface-color: #ffffff;
+  --text-color: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --sent-message-bg: #e0ecff;
+  --received-message-bg: #f3f4f6;
+}

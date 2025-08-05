@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import a monospace font */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* Custom styles */
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Blinking cursor animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Define primary color for consistent use */
+:root {
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+}

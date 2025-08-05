@@ -1,0 +1,81 @@
+/* Groups List */
+.groups-container {
+  margin-top: 2rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.group-section h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.group-list {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.group-item {
+  background-color: var(--surface-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid var(--border-color);
+}
+
+.group-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.group-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.group-name {
+  font-weight: 500;
+}
+
+/* Group badges */
+.group-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  margin-left: auto;
+}
+
+.group-badge.writable {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.group-badge.readonly {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+/* Course category styling */
+.course-subheading {
+  font-size: 1rem;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.group-section > .group-list + .course-subheading {
+  margin-top: 1.5rem;
+}
+
+/* Make group items more compact for courses */
+.course-subheading + .group-list .group-item {
+  margin-bottom: 0.25rem;
+}
