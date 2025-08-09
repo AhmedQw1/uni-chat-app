@@ -14,9 +14,7 @@ export default function DebugEnv() {
       
       {showEnv && (
         <div className="bg-white p-4 rounded border">
-          <p>Region: {import.meta.env.VITE_AWS_REGION ? '✅ Loaded' : '❌ Missing'}</p>
-          <p>Access Key: {import.meta.env.VITE_AWS_ACCESS_KEY ? '✅ Loaded' : '❌ Missing'}</p>
-          <p>Secret Key: {import.meta.env.VITE_AWS_SECRET_KEY ? '✅ Loaded' : '❌ Missing'}</p>
+          {/* AWS S3 environment variables removed since S3 is not used */}
           <p>Bucket: {import.meta.env.VITE_S3_BUCKET ? '✅ Loaded' : '❌ Missing'}</p>
         </div>
       )}
