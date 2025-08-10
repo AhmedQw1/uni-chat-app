@@ -160,5 +160,5 @@ MIT
 
 ## 💬 Feedback & Contributions
 
-- Found a bug or have a feature request?  
+- Found a bug(other than notifications cuz they are under mainatance LOL) or have a feature request?  
   Feel free to open an issue or pull request!
