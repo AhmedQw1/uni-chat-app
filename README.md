@@ -20,7 +20,7 @@ It enables students and faculty to communicate in real time via group chats orga
 ## 🌐 Live Demo
 
 Access the deployed app here:  
-👉 [https://uni-chat-app-vuuh.vercel.app/login](https://uni-chat-app-vuuh.vercel.app/login)
+👉 [https://uni-chat-app-vuuh.vercel.app/](https://uni-chat-app-vuuh.vercel.app/)
 
 ---
 
