@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaPaperPlane, FaSmile, FaFile, FaTimes, FaImage, FaFilePdf, FaFileAudio, FaFileVideo, FaFileArchive } from 'react-icons/fa';
 import EmojiPicker from 'emoji-picker-react';
-import { uploadToFirebaseStorage } from '../../services/FirebaseStorageService';
+import { uploadToFirebaseStorage } from '../../services/FireBaseStorageService';
 
 function MessageContent({ message }) {
   if (!message) return null;

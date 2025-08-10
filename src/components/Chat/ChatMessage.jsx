@@ -1,7 +1,7 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
 import { FaEllipsisH, FaReply, FaCopy, FaDownload, FaPlay, FaPause, FaTrash } from 'react-icons/fa';
-import { getFirebaseFileUrl } from '../../services/FirebaseStorageService';
+import { getFirebaseFileUrl } from '../../services/FireBaseStorageService';
 
 // Helper to render file/image/emoji
 function MessageContent({ message }) {
