@@ -4,7 +4,7 @@ import { updateProfile } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { uploadProfilePicture } from '../services/FirebaseStorageService';
+import { uploadProfilePicture } from '../services/FireBaseStorageService';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { FaClock, FaUser } from 'react-icons/fa';
