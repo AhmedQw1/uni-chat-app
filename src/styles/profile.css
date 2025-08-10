@@ -139,7 +139,6 @@
   font-size: 0.75rem;
   color: #64748b;
 }
-/* Add these styles to the end of your profile.css file */
 
 /* Image cropper styles */
 .image-cropper-container {
@@ -170,7 +169,6 @@
   margin-top: 1rem;
 }
 
-/* Make sure these are visible inside the cropper container */
 .image-cropper-container .cancel-button,
 .image-cropper-container .save-button {
   min-width: 100px;

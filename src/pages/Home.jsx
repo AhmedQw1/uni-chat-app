@@ -33,7 +33,6 @@ export default function Home() {
   // Initialize groups when the Home page loads
   useEffect(() => {
     const initializeGroups = async () => {
-      // ... existing code ...
     };
     
     if (currentUser) {

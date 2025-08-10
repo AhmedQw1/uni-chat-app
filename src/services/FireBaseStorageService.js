@@ -1,5 +1,5 @@
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from "../firebase"; // Your existing Firebase config
+import { storage } from "../firebase";
 import { v4 as uuidv4 } from 'uuid';
 
 // File type mappings

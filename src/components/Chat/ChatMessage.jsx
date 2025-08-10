@@ -91,7 +91,7 @@ export default function ChatMessage({ message, showAvatar = true, onDeleteMessag
     );
   };
 
-  // Render main message (see your original code for rendering file, etc.)
+  // Render main message
   return (
     <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
       <div className={`max-w-[75%] flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>

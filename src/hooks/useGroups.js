@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { majors, generalGroups, generalCourses } from '../data/majors';
-
-// Utility for consistent Firestore group IDs (import if you have this in utils)
-const generateGroupId = (name) =>
-  name.replace(/\s+/g, '-').replace(/[&]/g, 'and').toLowerCase();
+import { generateGroupId } from '../utils/groupId';
 
 export default function useGroups(userMajor) {
   const [loading, setLoading] = useState(true);

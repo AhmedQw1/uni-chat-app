@@ -33,12 +33,10 @@ export const majors = [
   "Marketing"
 ];
 
-// Simplified to only contain General Chat
 export const generalGroups = [
   "General Chat"
 ];
 
-// Updated with your university's specific courses
 export const generalCourses = [
   // Compulsory GUE Courses
   "Computer Skills",

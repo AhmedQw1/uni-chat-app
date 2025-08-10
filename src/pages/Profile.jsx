@@ -31,7 +31,7 @@ export default function Profile() {
   const imgRef = useRef(null);
   const previewCanvasRef = useRef(null);
 
-  // Format date and time in simple format
+  // Format date and time
   const formatDateTime = () => {
     const now = new Date();
     return now.toLocaleString('en-US', {
