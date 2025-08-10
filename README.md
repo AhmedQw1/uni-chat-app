@@ -17,6 +17,13 @@ It enables students and faculty to communicate in real time via group chats orga
 
 ---
 
+## 🌐 Live Demo
+
+Access the deployed app here:  
+👉 [https://uni-chat-app-vuuh.vercel.app/login](https://uni-chat-app-vuuh.vercel.app/login)
+
+---
+
 ## 🎯 Features
 
 - **Authentication & Security**
@@ -43,7 +50,9 @@ It enables students and faculty to communicate in real time via group chats orga
   - Status bar showing current time (local/timezone) & user login
 
 - **Notifications**
-  - Under Maintanace(Stay Tuned:p) 
+  - Real-time unread message counts per group
+  - Total unread badge in header
+  - Browser push notification support
 
 - **Tech Stack**
   - React 19, React Router v6
@@ -160,5 +169,5 @@ MIT
 
 ## 💬 Feedback & Contributions
 
-- Found a bug(other than notifications cuz they are under mainatance LOL) or have a feature request?  
+- Found a bug(other than notifications cuz still under maintenance LOL) or have a feature request?  
   Feel free to open an issue or pull request!
