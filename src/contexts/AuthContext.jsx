@@ -5,7 +5,9 @@ import {
   createUserWithEmailAndPassword,
   signOut, 
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail,
+  sendEmailVerification
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { initNotifications, getNotificationService } from '../services/NotificationService';
@@ -41,7 +43,10 @@ export function AuthProvider({ children }) {
       email,
       createdAt: new Date()
     });
-    
+
+    // Send email verification
+    await sendEmailVerification(result.user);
+
     return result.user;
   }
 
@@ -74,7 +79,8 @@ export function AuthProvider({ children }) {
             ...auth.currentUser,
             displayName: auth.currentUser.displayName || userData.displayName,
             major: userData.major,
-            photoURL: auth.currentUser.photoURL || userData.photoURL
+            photoURL: auth.currentUser.photoURL || userData.photoURL,
+            emailVerified: auth.currentUser.emailVerified
           });
         } else {
           setCurrentUser(auth.currentUser);
@@ -84,6 +90,19 @@ export function AuthProvider({ children }) {
       }
     }
   };
+
+  // Password reset function
+  async function resetPassword(email) {
+    return sendPasswordResetEmail(auth, email);
+  }
+
+  // Email verification function (for resending if needed)
+  async function sendVerificationEmail() {
+    if (auth.currentUser) {
+      return sendEmailVerification(auth.currentUser);
+    }
+    throw new Error("No current user");
+  }
 
   // Set up auth state observer
   useEffect(() => {
@@ -104,7 +123,8 @@ export function AuthProvider({ children }) {
               ...user,
               displayName: user.displayName || userData.displayName,
               major: userData.major,
-              photoURL: user.photoURL || userData.photoURL
+              photoURL: user.photoURL || userData.photoURL,
+              emailVerified: user.emailVerified
             };
             
             setCurrentUser(enhancedUser);
@@ -153,6 +173,8 @@ export function AuthProvider({ children }) {
     login,
     logout,
     refreshUserData,
+    resetPassword,
+    sendVerificationEmail,
     unreadCounts,
     totalUnread,
     markGroupAsRead: (groupId) => {

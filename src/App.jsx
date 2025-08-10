@@ -8,19 +8,16 @@ import Home from './pages/Home';
 import GroupChat from './pages/GroupChat';
 import Profile from './pages/Profile';
 import AppLayout from './components/Layout/AppLayout';
-import './index.css';
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Auth routes without layout */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           
-          {/* Protected routes with new AppLayout */}
           <Route 
             path="/" 
             element={

@@ -28,11 +28,17 @@ export default function StatusBar({ user }) {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
+  // Get the local timezone string
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   return (
     <div className="bg-white shadow-sm rounded-lg p-3 mb-4 text-xs text-gray-500 flex flex-col sm:flex-row sm:justify-between sm:items-center">
       <div className="flex items-center mb-2 sm:mb-0">
         <FaClock className="text-gray-400 mr-1.5" />
-        <span>Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): {formatDateTime()}</span>
+        <span>
+          Current Date and Time (Local): {formatDateTime()}{" "}
+          <span className="ml-1 text-gray-400">[{timezone}]</span>
+        </span>
       </div>
       <div className="flex items-center">
         <FaUser className="text-gray-400 mr-1.5" />

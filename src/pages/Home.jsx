@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { FaComments, FaUsers } from 'react-icons/fa';
 import { collection, getCountFromServer } from 'firebase/firestore';
 import { db } from '../firebase';
-import DebugEnv from '../components/DebugEnv'; // Add this import
+
 
 export default function Home() {
   const { currentUser } = useAuth();
@@ -43,8 +43,7 @@ export default function Home() {
 
   return (
     <div className="w-full">
-      {/* Add the debug component at the top */}
-      <DebugEnv />
+
       
       <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
         <div className="flex items-center mb-4">

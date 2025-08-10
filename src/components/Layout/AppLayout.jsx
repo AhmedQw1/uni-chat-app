@@ -6,27 +6,29 @@ import Header from './Header';
 import StatusBar from './StatusBar';
 import { FaBars, FaTimes } from 'react-icons/fa';
 
+// Custom hook for responsive breakpoint detection
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const handler = () => setMatches(media.matches);
+    media.addEventListener('change', handler);
+    return () => media.removeEventListener('change', handler);
+  }, [query]);
+  return matches;
+}
+
 export default function AppLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const { currentUser } = useAuth();
   const location = useLocation();
-  
-  // Handle responsive sidebar
+
+  // Handle responsive sidebar open/close
   useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile && sidebarOpen) setSidebarOpen(false);
-      if (!mobile && !sidebarOpen) setSidebarOpen(true);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    
-    return () => window.removeEventListener('resize', handleResize);
-  }, [sidebarOpen]);
-  
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+
   // Close sidebar when navigating on mobile
   useEffect(() => {
     if (isMobile) setSidebarOpen(false);
@@ -43,7 +45,7 @@ export default function AppLayout({ children }) {
         <Sidebar open={sidebarOpen} />
         
         {/* Main content */}
-        <main className={`flex-1 overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+        <main className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
           <div className="p-4 md:p-6">
             {/* Status bar */}
             <StatusBar user={currentUser} />

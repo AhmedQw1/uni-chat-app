@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaSignInAlt, FaClock, FaUser } from 'react-icons/fa';
+import { auth } from '../../firebase';
+import { setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -9,6 +11,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [rememberMe, setRememberMe] = useState(true); // Added rememberMe state
   const { login } = useAuth();
   const navigate = useNavigate();
   
@@ -39,6 +42,8 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
+      // Set persistence based on rememberMe
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       await login(email, password);
       navigate('/');
     } catch (error) {
@@ -132,6 +137,8 @@ export default function Login() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">

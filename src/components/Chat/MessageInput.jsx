@@ -3,7 +3,37 @@ import { FaPaperPlane, FaSmile, FaFile, FaTimes, FaImage, FaFilePdf, FaFileAudio
 import EmojiPicker from 'emoji-picker-react';
 import { uploadToFirebaseStorage } from '../../services/FirebaseStorageService';
 
-export default function MessageInput({ onSendMessage, groupId }) {
+function MessageContent({ message }) {
+  if (!message) return null;
+  if (message.file) {
+    switch (message.file.fileType) {
+      case 'image':
+        return (
+          <img src={message.file.url} alt={message.file.name} className="max-w-xs h-auto rounded border" />
+        );
+      case 'audio':
+        return (
+          <audio src={message.file.url} controls className="w-full h-8" />
+        );
+      case 'video':
+        return (
+          <video src={message.file.url} controls className="max-w-xs rounded" style={{ maxHeight: '200px' }} />
+        );
+      default:
+        return (
+          <a href={message.file.url} download={message.file.name} className="text-blue-800 underline">
+            {message.file.name}
+          </a>
+        );
+    }
+  }
+  if (message.text && /^\p{Emoji}+$/u.test(message.text.trim())) {
+    return <span style={{ fontSize: '2rem' }}>{message.text}</span>;
+  }
+  return <span>{message.text}</span>;
+}
+
+export default function MessageInput({ onSendMessage, groupId, replyTo, onCancelReply }) {
   const [message, setMessage] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -12,12 +42,10 @@ export default function MessageInput({ onSendMessage, groupId }) {
   const [fileType, setFileType] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const emojiPickerRef = useRef(null);
-  
-  // Define allowed file types
+
   const allowedFileTypes = {
     image: ['.jpg', '.jpeg', '.png', '.webp', '.gif'],
     document: ['.pdf', '.docx', '.pptx', '.xlsx', '.txt'],
@@ -25,65 +53,49 @@ export default function MessageInput({ onSendMessage, groupId }) {
     audio: ['.mp3', '.m4a', '.ogg', '.wav'],
     video: ['.mp4', '.webm', '.mov']
   };
-  
-  // Get all allowed extensions as a string for the file input
+
   const getAllowedFileExtensions = () => {
     return Object.values(allowedFileTypes).flat().join(',');
   };
 
-  // Resize textarea based on content
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
     }
   }, [message]);
-  
-  // Close emoji picker when clicking outside
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
         setShowEmojiPicker(false);
       }
     }
-    
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  // Handle form submission
+  useEffect(() => {
+    if (replyTo === null) setMessage('');
+  }, [replyTo]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Don't send if no message and no file
     if (!message.trim() && !selectedFile) return;
-    
     try {
       let fileData = null;
-      
-      // If there's a file, upload it first
       if (selectedFile) {
         fileData = await uploadToFirebase(selectedFile);
       }
-      
-      // Send message with or without file
       onSendMessage(message, fileData);
-      
-      // Reset state
       setMessage('');
       setSelectedFile(null);
       setFilePreview(null);
       setFileType(null);
       setUploadProgress(0);
-      
-      // Reset textarea height
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
-      
-      // Focus back on textarea
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
       textareaRef.current.focus();
     } catch (error) {
       console.error("Error sending message:", error);
@@ -91,39 +103,29 @@ export default function MessageInput({ onSendMessage, groupId }) {
     }
   };
 
-  // Handle key press - submit on Enter (without shift)
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
-  
-  // Handle emoji selection
+
   const onEmojiClick = (emojiData) => {
     setMessage(prev => prev + emojiData.emoji);
     setShowEmojiPicker(false);
   };
-  
-  // Handle file selection
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
-    // Check file size (limit to 50MB)
     if (file.size > 50 * 1024 * 1024) {
       alert("File is too large. Maximum file size is 50MB.");
       return;
     }
-    
     setSelectedFile(file);
-    
-    // Determine file type
     const extension = `.${file.name.split('.').pop().toLowerCase()}`;
-    
     if (allowedFileTypes.image.includes(extension)) {
       setFileType('image');
-      // Create preview for images
       const reader = new FileReader();
       reader.onload = (e) => setFilePreview(e.target.result);
       reader.readAsDataURL(file);
@@ -144,48 +146,31 @@ export default function MessageInput({ onSendMessage, groupId }) {
       setFilePreview(null);
     }
   };
-  
-  // Upload file to Firebase Storage
+
   const uploadToFirebase = async (file) => {
     try {
       setIsUploading(true);
-      
-      // Track progress
       const onProgress = (progress) => {
-        console.log(`Upload progress: ${progress.toFixed(1)}%`);
         setUploadProgress(progress);
       };
-      
-      // Upload to Firebase Storage
-      console.log(`Starting upload to Firebase: ${file.name} (${fileType})`);
       const fileData = await uploadToFirebaseStorage(file, fileType, groupId, onProgress);
-      
       setIsUploading(false);
-      console.log("Firebase upload successful:", fileData);
-      
       return fileData;
     } catch (error) {
-      console.error('Error in Firebase upload:', error);
       alert(`Failed to upload file: ${error.message || 'Unknown error'}`);
       setIsUploading(false);
       throw error;
     }
   };
-  
-  // Remove selected file
+
   const removeFile = () => {
     setSelectedFile(null);
     setFilePreview(null);
     setFileType(null);
     setUploadProgress(0);
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
-  
-  // Get file icon based on type
+
   const getFileIcon = () => {
     switch (fileType) {
       case 'document':
@@ -204,7 +189,36 @@ export default function MessageInput({ onSendMessage, groupId }) {
   return (
     <div className="border-t border-gray-200 bg-white p-3">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        {/* File preview (if any) */}
+        {/* Reply banner */}
+        {replyTo && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-2 mb-2 rounded flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-primary text-white text-xs flex items-center justify-center mr-2">
+                {replyTo.photoURL ? (
+                  <img src={replyTo.photoURL} alt={replyTo.displayName} className="h-full w-full object-cover" />
+                ) : (
+                  replyTo.displayName?.charAt(0).toUpperCase() || "?"
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-blue-800 font-medium text-xs">
+                  {replyTo.displayName || "Unknown User"}
+                </span>
+                <span className="text-blue-700 text-xs">
+                  <MessageContent message={replyTo} />
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onCancelReply}
+              className="ml-4 px-2 py-1 text-xs bg-blue-100 rounded text-blue-700 hover:bg-blue-200"
+            >
+              <FaTimes className="inline mr-1" /> Cancel
+            </button>
+          </div>
+        )}
+
         {selectedFile && (
           <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 relative">
             <button
@@ -214,7 +228,6 @@ export default function MessageInput({ onSendMessage, groupId }) {
             >
               <FaTimes size={16} />
             </button>
-            
             <div className="flex items-center gap-3">
               {fileType === 'image' && filePreview ? (
                 <div className="w-20 h-20 bg-gray-200 rounded overflow-hidden">
@@ -229,13 +242,11 @@ export default function MessageInput({ onSendMessage, groupId }) {
                   {getFileIcon()}
                 </div>
               )}
-              
               <div className="flex-1">
                 <div className="font-medium text-gray-700 truncate">{selectedFile.name}</div>
                 <div className="text-xs text-gray-500">
                   {(selectedFile.size / 1024).toFixed(1)} KB · {fileType}
                 </div>
-                
                 {isUploading && (
                   <div className="mt-2">
                     <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -253,13 +264,11 @@ export default function MessageInput({ onSendMessage, groupId }) {
             </div>
           </div>
         )}
-      
-        {/* Input area with buttons */}
+
         <div className="flex items-end gap-2">
           <div className={`flex-1 relative border rounded-lg transition-all ${
             isFocused ? 'border-primary ring-1 ring-primary ring-opacity-50' : 'border-gray-300'
           }`}>
-            {/* Button row above textarea (only shown when focused) */}
             {isFocused && (
               <div className="absolute -top-10 left-0 right-0 bg-white border border-gray-200 rounded-t-lg shadow-sm p-2 flex items-center gap-2">
                 <button 
@@ -301,8 +310,6 @@ export default function MessageInput({ onSendMessage, groupId }) {
                 </button>
               </div>
             )}
-            
-            {/* Hidden file input */}
             <input
               type="file"
               ref={fileInputRef}
@@ -310,8 +317,6 @@ export default function MessageInput({ onSendMessage, groupId }) {
               accept={getAllowedFileExtensions()}
               className="hidden"
             />
-            
-            {/* Emoji picker */}
             {showEmojiPicker && (
               <div 
                 ref={emojiPickerRef}
@@ -324,8 +329,6 @@ export default function MessageInput({ onSendMessage, groupId }) {
                 />
               </div>
             )}
-            
-            {/* Textarea */}
             <textarea
               ref={textareaRef}
               value={message}
@@ -337,16 +340,12 @@ export default function MessageInput({ onSendMessage, groupId }) {
               rows={1}
               disabled={isUploading}
             />
-            
-            {/* Character count */}
             {message.length > 0 && (
               <div className="absolute bottom-2 right-12 text-xs text-gray-400">
                 {message.length}
               </div>
             )}
           </div>
-          
-          {/* Send button */}
           <button 
             type="submit" 
             disabled={(!message.trim() && !selectedFile) || isUploading}

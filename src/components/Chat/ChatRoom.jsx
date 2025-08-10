@@ -35,90 +35,54 @@ export default function ChatRoom({ containerRef }) {
   const messagesEndRef = useRef(null);
   const observer = useRef(null);
   const MESSAGES_PER_PAGE = 25;
+  const [replyTo, setReplyTo] = useState(null);
 
-  // Determine if user can write in this group
   useEffect(() => {
     if (!groupId || !currentUser) return;
-    
-    // Helper function to normalize ID creation
     const normalizeId = (text) => text.toLowerCase().replace(/\s+/g, '-');
-    
-    // Get normalized versions of both IDs for comparison
     const userMajorId = normalizeId(currentUser.major || '');
-    
-    // User can write if it's their major group or a general/shared group
-    const isMajorGroup = userMajorId === groupId;
-    const isGeneralGroup = true; // We're assuming all groups are writable for simplicity
-    const userCanWrite = isMajorGroup || isGeneralGroup;
-    setCanWrite(userCanWrite);
+    setCanWrite(true); // All groups writable for simplicity
   }, [groupId, currentUser]);
 
-  // Handle scroll to detect if user is at bottom
   useEffect(() => {
     if (!containerRef?.current) return;
-    
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
       const scrolledToBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 50;
       setIsAtBottom(scrolledToBottom);
-      
-      if (scrolledToBottom && unreadCount > 0) {
-        setUnreadCount(0);
-      }
+      if (scrolledToBottom && unreadCount > 0) setUnreadCount(0);
     };
-    
     const currentContainer = containerRef.current;
     currentContainer.addEventListener('scroll', handleScroll);
     return () => currentContainer.removeEventListener('scroll', handleScroll);
   }, [containerRef, unreadCount]);
 
-  // Load messages
   useEffect(() => {
     if (!groupId) return;
-    
     setMessages([]);
     setLoading(true);
     setHasMore(true);
-
-    // Create a reference to the messages collection
     const messagesRef = collection(db, 'groups', groupId, 'messages');
     const q = query(messagesRef, orderBy('createdAt', 'desc'), limit(MESSAGES_PER_PAGE));
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newMessages = snapshot.docs.map(doc => {
         const data = doc.data();
         const createdAt = data.createdAt instanceof Timestamp 
           ? data.createdAt.toDate() 
           : data.createdAt || new Date();
-          
         return {
           id: doc.id,
           ...data,
           createdAt
         };
       });
-      
-      // Reverse to get ascending order
       const sortedMessages = newMessages.reverse();
-      
-      // Check if we were at the bottom before receiving new messages
-      const wasAtBottom = isAtBottom;
-      
-      // Update messages state
       setMessages(sortedMessages);
       setLoading(false);
-      
-      // If user was at bottom, scroll to bottom
-      if (wasAtBottom) {
-        setTimeout(() => {
-          scrollToBottom();
-        }, 100);
-      } else if (snapshot.docChanges().some(change => change.type === 'added')) {
-        // If new messages came in and user is not at bottom, increment unread count
+      if (isAtBottom) setTimeout(() => scrollToBottom(), 100);
+      else if (snapshot.docChanges().some(change => change.type === 'added')) {
         setUnreadCount(prev => prev + 1);
       }
-      
-      // Mark messages as read when entering a chat room
       if (currentUser && sortedMessages.length > 0) {
         markGroupAsRead(groupId);
       }
@@ -126,23 +90,14 @@ export default function ChatRoom({ containerRef }) {
       console.error(`Error in message listener: ${error.message}`);
       setLoading(false);
     });
-
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, [groupId, currentUser, isAtBottom, markGroupAsRead]);
 
-  // Load more messages function
   const loadMoreMessages = async () => {
-    if (!groupId || !messages.length || loadingMore || !hasMore) return;
-    
+    if (!groupId || messages.length === 0 || loadingMore || !hasMore) return;
     try {
       setLoadingMore(true);
-      
-      // Get the oldest message timestamp
       const oldestMessage = messages[0];
-      
-      // Query for older messages
       const messagesRef = collection(db, 'groups', groupId, 'messages');
       const q = query(
         messagesRef, 
@@ -150,32 +105,24 @@ export default function ChatRoom({ containerRef }) {
         startAfter(oldestMessage.createdAt), 
         limit(MESSAGES_PER_PAGE)
       );
-      
       const snapshot = await getDocs(q);
-      
       if (snapshot.empty) {
         setHasMore(false);
         setLoadingMore(false);
         return;
       }
-      
-      // Process new messages
       const olderMessages = snapshot.docs.map(doc => {
         const data = doc.data();
         const createdAt = data.createdAt instanceof Timestamp 
           ? data.createdAt.toDate() 
           : data.createdAt || new Date();
-          
         return {
           id: doc.id,
           ...data,
           createdAt
         };
       }).reverse();
-      
-      // Add older messages to the beginning
       setMessages(prev => [...olderMessages, ...prev]);
-      
     } catch (error) {
       console.error("Error loading more messages:", error);
     } finally {
@@ -183,28 +130,17 @@ export default function ChatRoom({ containerRef }) {
     }
   };
 
-  // Function to scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     setUnreadCount(0);
-    
-    // Mark group as read
-    if (currentUser && groupId) {
-      markGroupAsRead(groupId);
-    }
+    if (currentUser && groupId) markGroupAsRead(groupId);
   };
 
-  // Delete message function
   const deleteMessage = async (messageId) => {
     if (!groupId || !currentUser) return;
-    
     try {
-      // Get a reference to the message document
       const messageRef = doc(db, 'groups', groupId, 'messages', messageId);
-      
-      // Delete the message
       await deleteDoc(messageRef);
-      
       console.log(`Message ${messageId} deleted successfully`);
     } catch (error) {
       console.error("Error deleting message:", error);
@@ -212,16 +148,12 @@ export default function ChatRoom({ containerRef }) {
     }
   };
 
-  // Send message function
+  // Send message; if replying, store replyToId
   const sendMessage = async (text, fileData = null) => {
     if ((!text || !text.trim()) && !fileData) return;
     if (!currentUser) return;
-
     try {
-      // Create a temporary ID for the message
       const tempId = `temp-${Date.now()}`;
-      
-      // Create the message object
       const newMessage = {
         id: tempId,
         text: text || '',
@@ -230,50 +162,37 @@ export default function ChatRoom({ containerRef }) {
         displayName: currentUser.displayName || 'Anonymous',
         photoURL: currentUser.photoURL || null,
         major: currentUser.major || 'Unspecified',
-        pending: true
+        pending: true,
+        replyToId: replyTo ? replyTo.id : null,
       };
-      
-      // Add file data if provided
-      if (fileData) {
-        newMessage.file = fileData;
-      }
-      
-      // Add to local messages for immediate display
+      if (fileData) newMessage.file = fileData;
       setLocalMessages(prev => [...prev, newMessage]);
-      
-      // Create message object for Firestore
       const messageData = {
         text: text || '',
         createdAt: serverTimestamp(),
         uid: currentUser.uid,
         displayName: currentUser.displayName || 'Anonymous',
         photoURL: currentUser.photoURL || null,
-        major: currentUser.major || 'Unspecified'
+        major: currentUser.major || 'Unspecified',
+        replyToId: replyTo ? replyTo.id : null,
       };
-      
-      // Add file data if provided
-      if (fileData) {
-        messageData.file = fileData;
-      }
-      
-      // Send to Firestore
+      if (fileData) messageData.file = fileData;
       const messagesRef = collection(db, 'groups', groupId, 'messages');
       await addDoc(messagesRef, messageData);
-      
-      // Remove temporary message
       setLocalMessages(prev => prev.filter(msg => msg.id !== tempId));
-      
-      // Scroll to bottom
-      setTimeout(() => {
-        scrollToBottom();
-      }, 100);
-      
+      setReplyTo(null);
+      setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
 
-  // Combine server messages with temporary local messages
+  // Lookup for replied message (for display in ChatMessage)
+  const lookupMessage = (id) => {
+    return [...messages, ...localMessages].find(msg => msg.id === id);
+  };
+
+  // Sort and merge all messages
   const allMessages = [...messages, ...localMessages].sort((a, b) => {
     const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
     const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
@@ -282,7 +201,6 @@ export default function ChatRoom({ containerRef }) {
 
   return (
     <>
-      {/* Messages container */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
         {loading ? (
           <div className="h-full flex items-center justify-center">
@@ -309,16 +227,6 @@ export default function ChatRoom({ containerRef }) {
                 </button>
               </div>
             )}
-            
-            {!canWrite && (
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm text-yellow-700 mb-4 rounded">
-                <p className="font-medium">Read-only mode</p>
-                <p>You can view this group's messages but cannot send messages here.</p>
-                {currentUser?.major && 
-                  <p>You can send messages in your major group ({currentUser.major}) and in general groups.</p>}
-              </div>
-            )}
-            
             {allMessages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-gray-500">
                 <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -330,40 +238,35 @@ export default function ChatRoom({ containerRef }) {
               </div>
             ) : (
               <div className="space-y-4">
-                {allMessages.map((msg, index) => (
-                  <ChatMessage 
-                    key={msg.id} 
-                    message={msg}
-                    showAvatar={
-                      index === 0 || 
-                      allMessages[index-1].uid !== msg.uid ||
-                      (new Date(msg.createdAt) - new Date(allMessages[index-1].createdAt)) > 5*60*1000
-                    }
-                    onDeleteMessage={deleteMessage}
-                  />
-                ))}
+                {allMessages.map((msg, index) => {
+                  const prevMsg = allMessages[index - 1];
+                  const showAvatar = !prevMsg ||
+                    prevMsg.uid !== msg.uid ||
+                    (new Date(msg.createdAt) - new Date(prevMsg.createdAt)) > 5 * 60 * 1000;
+                  return (
+                    <ChatMessage 
+                      key={msg.id} 
+                      message={msg}
+                      showAvatar={showAvatar}
+                      onDeleteMessage={deleteMessage}
+                      onReplyMessage={setReplyTo}
+                      repliedMessage={msg.replyToId ? lookupMessage(msg.replyToId) : null}
+                    />
+                  );
+                })}
               </div>
             )}
-            
             <div ref={messagesEndRef} />
           </>
         )}
       </div>
-      
-      {/* New messages alert */}
-      {!isAtBottom && unreadCount > 0 && (
-        <button 
-          onClick={scrollToBottom}
-          className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-10 bg-primary text-white px-4 py-2 rounded-full shadow-lg flex items-center"
-        >
-          <FaChevronDown className="mr-2" />
-          {unreadCount} new {unreadCount === 1 ? 'message' : 'messages'}
-        </button>
-      )}
-      
-      {/* Message input */}
       {canWrite ? (
-        <MessageInput onSendMessage={sendMessage} groupId={groupId} />
+        <MessageInput 
+          onSendMessage={sendMessage} 
+          groupId={groupId}
+          replyTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+        />
       ) : (
         <div className="p-4 text-center text-gray-500 bg-gray-100 border-t border-gray-200">
           You cannot send messages in this group
