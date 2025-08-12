@@ -40,12 +40,12 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Set persistence with fallback
-const setAuthPersistence = async () => {
-  try {
-    await setPersistence(auth, browserLocalPersistence);
+// Set persistence immediately (LOCAL) and fallback to SESSION if needed
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
     console.log("Firebase persistence set to LOCAL");
-  } catch (error) {
+  })
+  .catch(async (error) => {
     console.error("Error setting LOCAL persistence, trying SESSION:", error);
     try {
       await setPersistence(auth, browserSessionPersistence);
@@ -53,10 +53,7 @@ const setAuthPersistence = async () => {
     } catch (fallbackError) {
       console.error("Error setting SESSION persistence:", fallbackError);
     }
-  }
-};
-
-setAuthPersistence();
+  });
 
 // Helper function to initialize a group document
 export const initializeGroup = async (groupId, groupName, groupType) => {

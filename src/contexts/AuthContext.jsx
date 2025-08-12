@@ -109,14 +109,11 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
-          console.log("User is signed in:", user.uid);
-          
           // Get additional user data from Firestore
           const userDocRef = doc(db, "users", user.uid);
           const userDocSnap = await getDoc(userDocRef);
           
           if (userDocSnap.exists()) {
-            console.log("Found user document in Firestore");
             // Combine auth user with Firestore data
             const userData = userDocSnap.data();
             const enhancedUser = {
@@ -143,14 +140,12 @@ export function AuthProvider({ children }) {
               notificationService.requestNotificationPermission();
             }
           } else {
-            console.log("No user document found in Firestore");
             // Just use the auth user data
             setCurrentUser(user);
           }
           
           setLoading(false);
         } else {
-          console.log("No user is signed in");
           setCurrentUser(null);
           setLoading(false);
         }
@@ -169,6 +164,7 @@ export function AuthProvider({ children }) {
   // Context value
   const value = {
     currentUser,
+    loading,
     register,
     login,
     logout,
