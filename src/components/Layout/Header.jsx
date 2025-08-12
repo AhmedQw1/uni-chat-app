@@ -33,7 +33,10 @@ export default function Header({ toggleSidebar }) {
             className="cursor-pointer flex items-center"
             onClick={() => navigate('/')}
           >
-            <h1 className="text-xl font-bold">Uni Chat</h1>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4f46e5" className="w-8 h-8 mr-2">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.61.59 3.09 1.56 4.23l-1.46 5.16c-.14.51.31.96.82.82l5.16-1.46C9.91 21.41 11.39 22 13 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.2 0-2.36-.21-3.42-.6l-3.23.91.91-3.23c-.39-1.06-.6-2.22-.6-3.42 0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/>
+            </svg>
+            <span className="text-xl font-bold hidden md:inline">Uni Chat</span>
           </div>
         </div>
         
