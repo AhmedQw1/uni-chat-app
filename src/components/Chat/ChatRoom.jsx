@@ -19,6 +19,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import ChatMessage from './ChatMessage';
 import MessageInput from './MessageInput';
 import { FaChevronDown, FaSpinner } from 'react-icons/fa';
+import { majors } from '../../data/majors';
+import { generateGroupId } from '../../utils/groupId';
 
 export default function ChatRoom({ containerRef }) {
   const { groupId } = useParams();
@@ -39,9 +41,16 @@ export default function ChatRoom({ containerRef }) {
 
   useEffect(() => {
     if (!groupId || !currentUser) return;
-    const normalizeId = (text) => text.toLowerCase().replace(/\s+/g, '-');
-    const userMajorId = normalizeId(currentUser.major || '');
-    setCanWrite(true); // All groups writable for simplicity
+
+    const majorGroupIds = majors.map(major => generateGroupId(major));
+    const isMajorGroup = majorGroupIds.includes(groupId);
+
+    if (isMajorGroup) {
+      const userMajorId = generateGroupId(currentUser.major || '');
+      setCanWrite(groupId === userMajorId);
+    } else {
+      setCanWrite(true); // Allow writing in general and course groups
+    }
   }, [groupId, currentUser]);
 
   useEffect(() => {
@@ -269,7 +278,7 @@ export default function ChatRoom({ containerRef }) {
         />
       ) : (
         <div className="p-4 text-center text-gray-500 bg-gray-100 border-t border-gray-200">
-          You cannot send messages in this group
+          You can only read messages in this group
         </div>
       )}
     </>
