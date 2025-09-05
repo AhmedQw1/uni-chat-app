@@ -47,12 +47,85 @@ export default function Sidebar({ open }) {
   // Helper to check if a route is active
   const isActive = (path) => location.pathname === path;
   
-  // Filter groups based on search term
+  // Advanced filter groups with comprehensive matching
   const filterGroups = (groups) => {
     if (!searchTerm.trim()) return groups;
-    return groups.filter(group => 
-      group.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    
+    const search = searchTerm.toLowerCase().trim();
+    const searchWords = search.split(/\s+/);
+    
+    return groups
+      .map(group => {
+        const name = group.name.toLowerCase();
+        const words = name.split(/[\s\-&]+/);
+        let score = 0;
+        
+        // Exact match
+        if (name === search) score += 100;
+        
+        // Starts with search
+        if (name.startsWith(search)) score += 50;
+        
+        // Contains search
+        if (name.includes(search)) score += 30;
+        
+        // Any word starts with search
+        if (words.some(word => word.startsWith(search))) score += 40;
+        
+        // Any word contains search
+        if (words.some(word => word.includes(search))) score += 20;
+        
+        // Multiple word search - all words must match
+        if (searchWords.length > 1) {
+          const allWordsMatch = searchWords.every(searchWord => 
+            words.some(word => word.includes(searchWord)) || name.includes(searchWord)
+          );
+          if (allWordsMatch) score += 35;
+        }
+        
+        // Common abbreviations
+        const abbreviations = {
+          'cs': ['computer science', 'computer skills'],
+          'se': ['software engineering', 'special education'],
+          'ai': ['artificial intelligence'],
+          'hr': ['human resource'],
+          'pr': ['public relations'],
+          'mis': ['management information systems'],
+          'ce': ['computer engineering', 'civil engineering'],
+          'is': ['islamic studies', 'information systems'],
+          'ba': ['business analytics'],
+          'fb': ['finance and banking']
+        };
+        
+        if (abbreviations[search]) {
+          abbreviations[search].forEach(fullName => {
+            if (name.includes(fullName)) score += 45;
+          });
+        }
+        
+        // Subject-based matching
+        const subjectKeywords = {
+          'engineering': ['civil', 'computer', 'software', 'networks'],
+          'language': ['arabic', 'english'],
+          'management': ['human resource', 'business', 'finance'],
+          'media': ['digital', 'communication', 'advertising', 'journalism'],
+          'science': ['computer', 'data', 'analytics'],
+          'education': ['special', 'physical'],
+          'health': ['nursing', 'nutrition', 'pharmacy', 'dental']
+        };
+        
+        Object.entries(subjectKeywords).forEach(([category, keywords]) => {
+          if (search.includes(category) || keywords.some(keyword => search.includes(keyword))) {
+            if (keywords.some(keyword => name.includes(keyword))) {
+              score += 25;
+            }
+          }
+        });
+        
+        return { ...group, score };
+      })
+      .filter(group => group.score > 0)
+      .sort((a, b) => b.score - a.score);
   };
   
   // Toggle section expansion

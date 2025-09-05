@@ -1,59 +1,106 @@
-import { useState, useEffect, useRef } from "react";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { db } from "../firebase";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
-import { useDebounce } from "../../hooks/useDebounce"; // Add this hook
+import { useDebounce } from "../../hooks/useDebounce";
+import { useAuth } from "../../contexts/AuthContext";
+import useGroups from "../../hooks/useGroups";
 
-// Helper for fuzzy matching
-function getFuzzyMatches(groups, text) {
-  const pattern = text.trim().toLowerCase();
-  if (!pattern) return [];
-  // Simple fuzzy scoring (edit for more advanced if needed)
+// Advanced search function with multiple matching strategies
+function getAdvancedMatches(groups, searchText) {
+  const search = searchText.trim().toLowerCase();
+  if (!search) return [];
+
   return groups
-    .map(group => ({
-      ...group,
-      score: group.name.toLowerCase().startsWith(pattern)
-        ? 2
-        : group.name.toLowerCase().includes(pattern)
-        ? 1
-        : 0,
-    }))
-    .filter(g => g.score > 0)
+    .map(group => {
+      const name = group.name.toLowerCase();
+      const words = name.split(/[\s\-&]+/); // Split on spaces, hyphens, and ampersands
+      const searchWords = search.split(/\s+/);
+      
+      let score = 0;
+      
+      // Exact match (highest priority)
+      if (name === search) score += 100;
+      
+      // Name starts with search
+      if (name.startsWith(search)) score += 50;
+      
+      // Name contains search
+      if (name.includes(search)) score += 30;
+      
+      // Any word starts with search
+      if (words.some(word => word.startsWith(search))) score += 40;
+      
+      // Any word contains search
+      if (words.some(word => word.includes(search))) score += 20;
+      
+      // Multiple word search - all words must match
+      if (searchWords.length > 1) {
+        const allWordsMatch = searchWords.every(searchWord => 
+          words.some(word => word.includes(searchWord)) || name.includes(searchWord)
+        );
+        if (allWordsMatch) score += 35;
+      }
+      
+      // Fuzzy matching for common abbreviations
+      const abbreviations = {
+        'cs': ['computer science', 'computer skills'],
+        'se': ['software engineering', 'special education'],
+        'ai': ['artificial intelligence'],
+        'hr': ['human resource'],
+        'pr': ['public relations'],
+        'mis': ['management information systems'],
+        'ce': ['computer engineering', 'civil engineering'],
+        'is': ['islamic studies', 'information systems'],
+        'ba': ['business analytics'],
+        'fb': ['finance and banking']
+      };
+      
+      if (abbreviations[search]) {
+        abbreviations[search].forEach(fullName => {
+          if (name.includes(fullName)) score += 45;
+        });
+      }
+      
+      // Subject-based matching
+      const subjectKeywords = {
+        'engineering': ['civil', 'computer', 'software', 'networks'],
+        'language': ['arabic', 'english'],
+        'management': ['human resource', 'business', 'finance'],
+        'media': ['digital', 'communication', 'advertising', 'journalism'],
+        'science': ['computer', 'data', 'analytics'],
+        'education': ['special', 'physical'],
+        'health': ['nursing', 'nutrition', 'pharmacy', 'dental']
+      };
+      
+      Object.entries(subjectKeywords).forEach(([category, keywords]) => {
+        if (search.includes(category) || keywords.some(keyword => search.includes(keyword))) {
+          if (keywords.some(keyword => name.includes(keyword))) {
+            score += 25;
+          }
+        }
+      });
+      
+      return { ...group, score };
+    })
+    .filter(group => group.score > 0)
     .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
 }
 
 export default function GroupSearchBar() {
   const [search, setSearch] = useState("");
-  const [groups, setGroups] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [focused, setFocused] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
   const inputRef = useRef();
+  const { currentUser } = useAuth();
+  const { allGroups, loading } = useGroups(currentUser?.major);
 
-  // Fetch groups on mount
-  useEffect(() => {
-    async function fetchGroups() {
-      setLoading(true);
-      try {
-        const groupsRef = collection(db, "groups");
-        const q = query(groupsRef, orderBy("name"), limit(100)); // Adjust limit as needed
-        const snapshot = await getDocs(q);
-        const groupList = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setGroups(groupList);
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load groups.");
-        setLoading(false);
-      }
-    }
-    fetchGroups();
-  }, []);
+  // Combine all groups into a single array for searching - memoized to prevent re-renders
+  const allGroupsArray = useMemo(() => [
+    ...allGroups.majorSpecific,
+    ...allGroups.general,
+    ...allGroups.courses
+  ], [allGroups.majorSpecific, allGroups.general, allGroups.courses]);
 
   // Debounce the search value by 300ms
   const debouncedSearch = useDebounce(search, 300);
@@ -64,14 +111,14 @@ export default function GroupSearchBar() {
       setSuggestions([]);
       return;
     }
-    setSuggestions(getFuzzyMatches(groups, debouncedSearch).slice(0, 8)); // Show top 8 matches
-  }, [debouncedSearch, groups]);
+    setSuggestions(getAdvancedMatches(allGroupsArray, debouncedSearch).slice(0, 10)); // Show top 10 matches
+  }, [debouncedSearch, allGroupsArray]);
 
   // Handle selection
   function handleSelect(group) {
     setSearch("");
     setSuggestions([]);
-    navigate(`/groups/${group.id}`); // Fixed route
+    navigate(`/groups/${group.id}`);
   }
 
   // Keyboard navigation for accessibility
@@ -129,9 +176,6 @@ export default function GroupSearchBar() {
             ))
           )}
         </div>
-      )}
-      {error && (
-        <div className="mt-2 text-red-500 text-sm">{error}</div>
       )}
     </div>
   );

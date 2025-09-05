@@ -1,10 +1,9 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { useState } from 'react';
-import { FaEllipsisH, FaReply, FaCopy, FaDownload, FaPlay, FaPause, FaTrash } from 'react-icons/fa';
-import { getFirebaseFileUrl } from '../../services/FireBaseStorageService';
+import { useState, memo } from 'react';
+import { FaEllipsisH, FaReply, FaCopy, FaTrash } from 'react-icons/fa';
 
-// Helper to render file/image/emoji
-function MessageContent({ message }) {
+// Helper to render file/image/emoji - memoized to prevent re-renders
+const MessageContent = memo(function MessageContent({ message }) {
   if (!message) return null;
   if (message.file) {
     switch (message.file.fileType) {
@@ -33,13 +32,12 @@ function MessageContent({ message }) {
     return <span style={{ fontSize: '2rem' }}>{message.text}</span>;
   }
   return <span>{message.text}</span>;
-}
+});
 
 export default function ChatMessage({ message, showAvatar = true, onDeleteMessage, onReplyMessage, repliedMessage }) {
   const { currentUser } = useAuth();
-  const { id, text, uid, displayName, photoURL, createdAt, major, pending, file } = message;
+  const { id, text, uid, displayName, photoURL, createdAt, major, pending } = message;
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const isCurrentUser = currentUser?.uid === uid;
 
   const formatTimestamp = (timestamp) => {

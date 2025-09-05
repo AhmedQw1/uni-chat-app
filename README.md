@@ -24,6 +24,17 @@ Access the deployed app here:
 
 ---
 
+## 🆕 Recent Updates
+
+### v2.0 - Enhanced Stability & Notifications
+- **🔧 Fixed Chat Flickering:** Completely resolved message rendering issues for smooth real-time chat
+- **🔍 Advanced Search:** Intelligent search with abbreviations, scoring, and multi-word support  
+- **🔔 Complete Notification System:** Interactive bell dropdown, desktop notifications, and smart unread tracking
+- **⚡ Performance Optimizations:** Improved React rendering and reduced unnecessary re-renders
+- **🧹 Code Quality:** Production-ready codebase with comprehensive error handling
+
+---
+
 ## 🎯 Features
 
 - **Authentication & Security**
@@ -44,15 +55,23 @@ Access the deployed app here:
   - Group info sidebar: guidelines, description, members
 
 - **Search & Navigation**
-  - Fuzzy group search bar with autocomplete suggestions
+  - Advanced group search with fuzzy matching and scoring
+  - Abbreviation support (e.g., "cs" finds "Computer Science", "is" finds "Islamic Studies")
+  - Multi-word search with intelligent matching
+  - Subject-based categorization and filtering
+  - Autocomplete suggestions with real-time results
   - Collapsible sidebar for groups, courses, and general rooms
   - Responsive design for mobile & desktop
   - Status bar showing current time (local/timezone) & user login
 
-- **Notifications**
-  - Real-time unread message counts per group
-  - Total unread badge in header
-  - Browser push notification support
+- **Smart Notifications**
+  - Real-time unread message tracking across all groups
+  - Interactive notification bell with dropdown menu
+  - Desktop browser notifications with permission handling
+  - Group-specific unread count badges
+  - Quick navigation to groups with new messages
+  - Auto mark-as-read when entering chat rooms
+  - Notification persistence across browser sessions
 
 - **Tech Stack**
   - React 19, React Router v6
@@ -169,5 +188,6 @@ MIT
 
 ## 💬 Feedback & Contributions
 
-- Found a bug(other than notifications cuz still under maintenance LOL) or have a feature request?  
+- Found a bug or have a feature request?  
   Feel free to open an issue or pull request!
+- Contributions are welcome to enhance the university chat experience!

@@ -1,7 +1,5 @@
 import GroupList from '../components/Groups/GroupList';
 import { useAuth } from '../contexts/AuthContext';
-import { initializeGroup } from '../firebase';
-import { majors, generalGroups, generalCourses } from '../data/majors';
 import { useEffect, useState } from 'react';
 import { FaComments, FaUsers } from 'react-icons/fa';
 import { collection, getCountFromServer } from 'firebase/firestore';

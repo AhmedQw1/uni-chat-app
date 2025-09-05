@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
   collection, 
@@ -28,16 +28,23 @@ export default function ChatRoom({ containerRef }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const { currentUser, markGroupAsRead } = useAuth();
-  const bottomRef = useRef();
   const [canWrite, setCanWrite] = useState(false);
-  const [localMessages, setLocalMessages] = useState([]);
   const [hasMore, setHasMore] = useState(true);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
-  const observer = useRef(null);
   const MESSAGES_PER_PAGE = 25;
   const [replyTo, setReplyTo] = useState(null);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setUnreadCount(0);
+    if (currentUser && groupId) markGroupAsRead(groupId);
+  }, [currentUser, groupId, markGroupAsRead]);
+
+  // Create a stable ref for scrollToBottom to avoid dependency issues
+  const scrollToBottomRef = useRef(scrollToBottom);
+  scrollToBottomRef.current = scrollToBottom;
 
   useEffect(() => {
     if (!groupId || !currentUser) return;
@@ -52,6 +59,20 @@ export default function ChatRoom({ containerRef }) {
       setCanWrite(true); // Allow writing in general and course groups
     }
   }, [groupId, currentUser]);
+
+  // Separate effect to mark messages as read when user is active
+  useEffect(() => {
+    if (currentUser && groupId && messages.length > 0 && isAtBottom) {
+      markGroupAsRead(groupId);
+    }
+  }, [currentUser, groupId, messages.length, isAtBottom, markGroupAsRead]);
+
+  // Auto-scroll effect for new messages
+  useEffect(() => {
+    if (messages.length > 0 && isAtBottom) {
+      setTimeout(() => scrollToBottomRef.current(), 100);
+    }
+  }, [messages.length, isAtBottom]);
 
   useEffect(() => {
     if (!containerRef?.current) return;
@@ -71,8 +92,10 @@ export default function ChatRoom({ containerRef }) {
     setMessages([]);
     setLoading(true);
     setHasMore(true);
+    
     const messagesRef = collection(db, 'groups', groupId, 'messages');
     const q = query(messagesRef, orderBy('createdAt', 'desc'), limit(MESSAGES_PER_PAGE));
+    
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newMessages = snapshot.docs.map(doc => {
         const data = doc.data();
@@ -85,22 +108,18 @@ export default function ChatRoom({ containerRef }) {
           createdAt
         };
       });
+      
       const sortedMessages = newMessages.reverse();
       setMessages(sortedMessages);
       setLoading(false);
-      if (isAtBottom) setTimeout(() => scrollToBottom(), 100);
-      else if (snapshot.docChanges().some(change => change.type === 'added')) {
-        setUnreadCount(prev => prev + 1);
-      }
-      if (currentUser && sortedMessages.length > 0) {
-        markGroupAsRead(groupId);
-      }
+      
     }, (error) => {
       console.error(`Error in message listener: ${error.message}`);
       setLoading(false);
     });
+    
     return () => unsubscribe();
-  }, [groupId, currentUser, isAtBottom, markGroupAsRead]);
+  }, [groupId, currentUser?.uid]); // Removed scrollToBottom dependency
 
   const loadMoreMessages = async () => {
     if (!groupId || messages.length === 0 || loadingMore || !hasMore) return;
@@ -139,12 +158,6 @@ export default function ChatRoom({ containerRef }) {
     }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    setUnreadCount(0);
-    if (currentUser && groupId) markGroupAsRead(groupId);
-  };
-
   const deleteMessage = async (messageId) => {
     if (!groupId || !currentUser) return;
     try {
@@ -157,25 +170,13 @@ export default function ChatRoom({ containerRef }) {
     }
   };
 
-  // Send message; if replying, store replyToId
+  // Simplified send message without optimistic UI
   const sendMessage = async (text, fileData = null) => {
     if ((!text || !text.trim()) && !fileData) return;
     if (!currentUser) return;
+    
     try {
-      const tempId = `temp-${Date.now()}`;
-      const newMessage = {
-        id: tempId,
-        text: text || '',
-        createdAt: new Date(),
-        uid: currentUser.uid,
-        displayName: currentUser.displayName || 'Anonymous',
-        photoURL: currentUser.photoURL || null,
-        major: currentUser.major || 'Unspecified',
-        pending: true,
-        replyToId: replyTo ? replyTo.id : null,
-      };
-      if (fileData) newMessage.file = fileData;
-      setLocalMessages(prev => [...prev, newMessage]);
+      // Prepare message data for Firebase
       const messageData = {
         text: text || '',
         createdAt: serverTimestamp(),
@@ -185,28 +186,31 @@ export default function ChatRoom({ containerRef }) {
         major: currentUser.major || 'Unspecified',
         replyToId: replyTo ? replyTo.id : null,
       };
+      
       if (fileData) messageData.file = fileData;
+      
+      // Send to Firebase directly
       const messagesRef = collection(db, 'groups', groupId, 'messages');
       await addDoc(messagesRef, messageData);
-      setLocalMessages(prev => prev.filter(msg => msg.id !== tempId));
+      
       setReplyTo(null);
-      setTimeout(() => scrollToBottom(), 100);
+      
+      // Auto-scroll after sending
+      setTimeout(() => scrollToBottomRef.current(), 200);
+      
     } catch (error) {
       console.error("Error sending message:", error);
+      alert("Failed to send message. Please try again.");
     }
   };
 
   // Lookup for replied message (for display in ChatMessage)
   const lookupMessage = (id) => {
-    return [...messages, ...localMessages].find(msg => msg.id === id);
+    return messages.find(msg => msg.id === id);
   };
 
-  // Sort and merge all messages
-  const allMessages = [...messages, ...localMessages].sort((a, b) => {
-    const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-    const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
-    return dateA - dateB;
-  });
+  // Simplified message handling - no optimistic UI to eliminate flickering
+  const allMessages = messages;
 
   return (
     <>
