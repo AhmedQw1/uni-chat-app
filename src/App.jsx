@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import GroupChat from './pages/GroupChat';
 import Profile from './pages/Profile';
 import AppLayout from './components/Layout/AppLayout';
+import PWAInstallPrompt from './components/PWA/PWAInstallPrompt';
 
 function App() {
   return (
@@ -50,6 +51,9 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        
+        {/* PWA Install Prompt */}
+        <PWAInstallPrompt />
       </AuthProvider>
     </Router>
   );

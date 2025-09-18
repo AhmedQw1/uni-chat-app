@@ -26,6 +26,13 @@ Access the deployed app here:
 
 ## 🆕 Recent Updates
 
+### v2.1 - Progressive Web App (PWA) 
+- **📱 PWA Support:** Full Progressive Web App capabilities with installable experience
+- **🔄 Offline Mode:** Chat history cached for offline viewing and seamless reconnection
+- **🏠 Home Screen Install:** Add to home screen on mobile and desktop for native app feel
+- **⚡ Service Worker:** Advanced caching strategies for Firebase and static assets
+- **🎯 App Manifest:** Complete PWA manifest with icons and platform optimization
+
 ### v2.0 - Enhanced Stability & Notifications
 - **🔧 Fixed Chat Flickering:** Completely resolved message rendering issues for smooth real-time chat
 - **🔍 Advanced Search:** Intelligent search with abbreviations, scoring, and multi-word support  
@@ -36,6 +43,13 @@ Access the deployed app here:
 ---
 
 ## 🎯 Features
+
+- **Progressive Web App (PWA)**
+  - 📱 Installable on mobile and desktop (Add to Home Screen)
+  - 🔄 Offline functionality with cached chat history
+  - ⚡ Fast loading with service worker caching
+  - 🎯 Native app-like experience with standalone display mode
+  - 🔧 Auto-updates and background sync capabilities
 
 - **Authentication & Security**
   - Register with email, password, display name, and university major
@@ -76,6 +90,8 @@ Access the deployed app here:
 - **Tech Stack**
   - React 19, React Router v6
   - Firebase Auth, Firestore, Storage
+  - Progressive Web App (PWA) with Workbox
+  - Vite with PWA plugin for service worker generation
   - Tailwind CSS
   - Vite for fast development
   - Emoji Picker, React Icons, React Image Crop
@@ -88,8 +104,18 @@ Access the deployed app here:
 uni-chat-app/
 ├── public/
 │   ├── chat-icon.svg        # App icon for favicon and branding
+│   ├── pwa-192x192.png      # PWA icons for installation
+│   ├── pwa-512x512.png      # PWA icons for installation
+│   ├── apple-icon-180.png   # Apple touch icon for iOS
 │   ├── Showcase.png         # Screenshot of the app
 │   └── ...                  # Other static assets
+├── dist/                    # Production build (generated)
+│   ├── index.html           # Optimized HTML with PWA features
+│   ├── manifest.webmanifest # PWA manifest file
+│   ├── sw.js                # Service worker for offline functionality
+│   ├── registerSW.js        # Service worker registration
+│   ├── workbox-*.js         # Workbox caching library
+│   └── assets/              # Minified JS/CSS bundles
 ├── src/
 │   ├── components/          # UI components (Chat, Auth, Groups, Layout, etc.)
 │   ├── contexts/            # React context providers (AuthContext)
@@ -148,6 +174,40 @@ npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### 5. Build for Production & PWA
+
+```sh
+npm run build
+```
+
+This creates an optimized build in the `dist/` folder with full PWA capabilities.
+
+To preview the production build locally:
+
+```sh
+npm run preview
+```
+
+---
+
+## 📱 PWA Installation
+
+### Desktop (Chrome, Edge, Safari)
+1. Visit the app in your browser
+2. Look for the install icon in the address bar or app menu
+3. Click "Install" to add it as a desktop app
+
+### Mobile (Android/iOS)
+1. Open the app in your mobile browser
+2. **Android Chrome:** Tap the menu → "Add to Home screen"
+3. **iOS Safari:** Tap the share button → "Add to Home Screen"
+4. The app will appear on your home screen like a native app
+
+### Offline Usage
+- Chat history is cached for offline viewing
+- New messages sync automatically when connection returns
+- App updates happen automatically in the background
 
 ---
 
