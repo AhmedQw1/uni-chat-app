@@ -1,8 +1,15 @@
 # Uni Chat App
 
-![Uni Chat Logo](public/chat-icon.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react)](https://react.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-Backend-FFCA28.svg?logo=firebase)](https://firebase.google.com/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-Bundler-646CFF.svg?logo=vite)](https://vitejs.dev/)
+[![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8.svg?logo=pwa)](https://web.dev/progressive-web-apps/)
+[![Live Demo](https://img.shields.io/badge/Demo-Vercel-black.svg?logo=vercel)](https://uni-chat-app-vuuh.vercel.app/)
 
 ---
+
 
 ## 🚀 Overview
 
